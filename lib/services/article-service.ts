@@ -1,0 +1,66 @@
+import { createClient } from '@/lib/supabase/server';
+import type { Article } from '@/lib/types/database';
+
+export const articleService = {
+  async getPublished(): Promise<Article[]> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('articles')
+      .select('*, category:categories(*)')
+      .eq('status', 'published')
+      .order('published_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as Article[];
+  },
+
+  async getBySlug(slug: string): Promise<Article | null> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('articles')
+      .select('*, category:categories(*)')
+      .eq('slug', slug)
+      .eq('status', 'published')
+      .maybeSingle();
+    if (error) throw error;
+    return data as Article | null;
+  },
+
+  async getAll(): Promise<Article[]> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('articles')
+      .select('*, category:categories(*)')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as Article[];
+  },
+
+  async create(input: Partial<Article>): Promise<Article> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('articles')
+      .insert(input)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as Article;
+  },
+
+  async update(id: string, input: Partial<Article>): Promise<Article> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('articles')
+      .update(input)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as Article;
+  },
+
+  async remove(id: string): Promise<void> {
+    const supabase = createClient();
+    const { error } = await supabase.from('articles').delete().eq('id', id);
+    if (error) throw error;
+  },
+};
