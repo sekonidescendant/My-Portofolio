@@ -9,17 +9,32 @@ import {
   resumeFileService,
   documentService,
 } from '@/lib/services/content-services';
+import { sanitizeHtml } from '@/lib/sanitize-html';
+import { estimateReadingTime } from '@/lib/reading-time';
 
 // ============================================================
 // ARTICLES
 // ============================================================
 
+function prepareArticleInput(input: Record<string, unknown>) {
+  const prepared = { ...input };
+  if (typeof prepared.content === 'string') {
+    const clean = sanitizeHtml(prepared.content);
+    prepared.content = clean;
+    prepared.reading_time = estimateReadingTime(clean);
+  }
+  if (prepared.status === 'published' && !prepared.published_at) {
+    prepared.published_at = new Date().toISOString();
+  }
+  return prepared;
+}
+
 export async function createArticle(input: Record<string, unknown>) {
   try {
-    await articleService.create(input);
+    const article = await articleService.create(prepareArticleInput(input));
     revalidatePath('/admin/articles');
     revalidatePath('/insights');
-    return { success: true };
+    return { success: true, id: article.id };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Failed to create article.' };
   }
@@ -27,12 +42,23 @@ export async function createArticle(input: Record<string, unknown>) {
 
 export async function updateArticle(id: string, input: Record<string, unknown>) {
   try {
-    await articleService.update(id, input);
+    await articleService.update(id, prepareArticleInput(input));
     revalidatePath('/admin/articles');
     revalidatePath('/insights');
     return { success: true };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Failed to update article.' };
+  }
+}
+
+export async function setArticleTags(articleId: string, tagIds: string[]) {
+  try {
+    await articleService.setTags(articleId, tagIds);
+    revalidatePath('/admin/articles');
+    revalidatePath('/insights');
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to set tags.' };
   }
 }
 
@@ -90,9 +116,9 @@ export async function deleteCaseStudy(id: string) {
 
 export async function createCategory(input: { name: string; slug: string; description?: string }) {
   try {
-    await categoryService.create(input);
+    const category = await categoryService.create(input);
     revalidatePath('/admin/articles');
-    return { success: true };
+    return { success: true, category };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Failed to create category.' };
   }
@@ -110,9 +136,9 @@ export async function deleteCategory(id: string) {
 
 export async function createTag(input: { name: string; slug: string }) {
   try {
-    await tagService.create(input);
+    const tag = await tagService.create(input);
     revalidatePath('/admin/articles');
-    return { success: true };
+    return { success: true, tag };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Failed to create tag.' };
   }
