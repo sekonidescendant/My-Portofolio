@@ -236,9 +236,14 @@ export async function getSignedUrlAction(id: string): Promise<{ ok: true; url: s
   return { ok: true, url: data.signedUrl };
 }
 
-function extractPathFromPublicUrl(url: string, bucket: string): string | null {
-  const marker = `/object/public/${bucket}/`;
-  const index = url.indexOf(marker);
-  if (index === -1) return null;
-  return decodeURIComponent(url.slice(index + marker.length));
-}
+export async function listImageMediaAction(): Promise
+  { ok: true; items: { id: string; url: string; file_name: string; alt_text: string }[] } | { ok: false; error: string }
+> {
+  const { supabase, user, error: authError } = await requireAdmin();
+  if (!user) return { ok: false, error: authError };
+
+  const { data, error } = await supabase
+    .from('media')
+    .select('id, url, file_name, alt_text')
+    .eq('bucket', 'images')
+    .order('created_at', {
