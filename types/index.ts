@@ -48,3 +48,19 @@ export type ResumeSection = {
   heading: string;
   entries: TimelineEntry[];
 };
+
+export type MediaBucket = 'images' | 'videos' | 'documents';
+
+export type MediaItem = {
+  id: string;
+  file_name: string;
+  url: string;
+  bucket: MediaBucket;
+  file_type: string;
+  size_bytes: number;
+  alt_text: string;
+  caption: string;
+  folder: string | null;
+  created_at: string;
+  updated_at: string;
+};
