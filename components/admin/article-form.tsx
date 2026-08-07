@@ -256,4 +256,110 @@ export function ArticleForm({
                 }}
               />
             ) : (
-              <Button type="button"
+              <Button type="button" variant="outline" size="sm" onClick={() => setPickerOpen(true)}>
+                <ImagePlus className="mr-2 h-4 w-4" />
+                Choose image
+              </Button>
+            )}
+          </div>
+
+          <div className="space-y-2 rounded-lg border border-border p-4">
+            <Label>Category</Label>
+            <CategorySelect
+              allCategories={localCategories}
+              selectedId={categoryId}
+              onChange={setCategoryId}
+              onCategoryCreated={(c) => setLocalCategories((prev) => [...prev, c])}
+            />
+          </div>
+
+          <div className="space-y-2 rounded-lg border border-border p-4">
+            <Label>Tags</Label>
+            <TagMultiSelect
+              allTags={localTags}
+              selectedIds={tagIds}
+              onChange={setTagIds}
+              onTagCreated={(t) => setLocalTags((prev) => [...prev, t])}
+            />
+          </div>
+
+          <div className="space-y-3 rounded-lg border border-border p-4">
+            <Label>SEO</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="seo-title" className="text-xs font-normal text-muted-foreground">
+                SEO title (optional)
+              </Label>
+              <Input
+                id="seo-title"
+                value={seoTitle}
+                onChange={(e) => setSeoTitle(e.target.value)}
+                placeholder={title || 'Defaults to article title'}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="seo-desc" className="text-xs font-normal text-muted-foreground">
+                SEO description (optional)
+              </Label>
+              <Textarea
+                id="seo-desc"
+                value={seoDescription}
+                onChange={(e) => setSeoDescription(e.target.value)}
+                placeholder={excerpt || 'Defaults to excerpt'}
+                rows={2}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <MediaPickerDialog
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        onSelect={(item) => {
+          setFeaturedImageUrl(item.url);
+          setFeaturedImageId(item.id);
+        }}
+      />
+
+      <ArticlePreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        title={title}
+        featuredImageUrl={featuredImageUrl}
+        content={content}
+        categoryName={localCategories.find((c) => c.id === categoryId)?.name}
+      />
+
+      {mode === 'edit' && (
+        <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this article?</AlertDialogTitle>
+              <AlertDialogDescription>
+                &ldquo;{title}&rdquo; will be permanently deleted. This can&apos;t be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                disabled={deleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </div>
+  );
+}
+
+function friendlyError(error?: string): string {
+  if (!error) return 'Something went wrong.';
+  if (error.includes('duplicate key') && error.includes('slug')) {
+    return 'That slug is already taken — try a different one.';
+  }
+  return error;
+}
