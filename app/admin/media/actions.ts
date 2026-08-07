@@ -236,7 +236,7 @@ export async function getSignedUrlAction(id: string): Promise<{ ok: true; url: s
   return { ok: true, url: data.signedUrl };
 }
 
-export async function listImageMediaAction(): Promise
+export async function listImageMediaAction(): Promise<
   { ok: true; items: { id: string; url: string; file_name: string; alt_text: string }[] } | { ok: false; error: string }
 > {
   const { supabase, user, error: authError } = await requireAdmin();
