@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { Providers } from '@/components/providers/providers';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
+import { Toaster } from '@/components/ui/sonner';
 import { siteConfig } from '@/lib/site-config';
 import { createMetadata } from '@/lib/seo';
 
@@ -61,6 +62,7 @@ export default function RootLayout({
             <Navbar />
             <main>{children}</main>
             <Footer />
+            <Toaster position="bottom-right" />
           </Providers>
         </ThemeProvider>
       </body>
