@@ -13,6 +13,11 @@ export interface CaseStudyData {
   process: { title: string; description: string }[];
   outcomes: string[];
   lessons: string[];
+  client?: string;
+  liveUrl?: string;
+  githubUrl?: string;
+  featured?: boolean;
+  gallery?: string[];
 }
 
 export const caseStudies: CaseStudyData[] = [

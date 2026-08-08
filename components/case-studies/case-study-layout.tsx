@@ -84,6 +84,7 @@ export function CaseStudyLayout({ study }: { study: CaseStudyData }) {
           <motion.div variants={fadeUp} className="flex flex-wrap gap-2">
             <Tag>{study.category}</Tag>
             <Tag>{study.role}</Tag>
+            {study.client && <Tag>{study.client}</Tag>}
           </motion.div>
           <motion.h1
             variants={fadeUp}
@@ -97,6 +98,26 @@ export function CaseStudyLayout({ study }: { study: CaseStudyData }) {
           >
             {study.summary}
           </motion.p>
+          {(study.liveUrl || study.githubUrl) && (
+            <motion.div variants={fadeUp} className="flex flex-wrap gap-3">
+              {study.liveUrl && (
+                <Button asChild variant="outline" size="sm">
+                  <a href={study.liveUrl} target="_blank" rel="noopener noreferrer">
+                    View Live
+                    <ArrowUpRight className="ml-1.5 h-3.5 w-3.5" />
+                  </a>
+                </Button>
+              )}
+              {study.githubUrl && (
+                <Button asChild variant="outline" size="sm">
+                  <a href={study.githubUrl} target="_blank" rel="noopener noreferrer">
+                    View Code
+                    <ArrowUpRight className="ml-1.5 h-3.5 w-3.5" />
+                  </a>
+                </Button>
+              )}
+            </motion.div>
+          )}
           {study.result && study.result.length > 0 && (
             <motion.div variants={fadeUp} className="flex flex-wrap gap-3">
               {study.result.map((r) => (
@@ -178,19 +199,34 @@ export function CaseStudyLayout({ study }: { study: CaseStudyData }) {
           <ListBlock items={study.lessons} />
         </Section>
 
-        {/* Gallery placeholder */}
+        {/* Gallery */}
         <Section eyebrow="Visuals" title="Gallery">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                variants={fadeUp}
-                className="flex aspect-video items-center justify-center rounded-xl border border-dashed border-border bg-secondary/20 text-sm text-muted-foreground"
-              >
-                Image coming soon
-              </motion.div>
-            ))}
-          </div>
+          {study.gallery && study.gallery.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {study.gallery.map((url) => (
+                <motion.div
+                  key={url}
+                  variants={fadeUp}
+                  className="aspect-video overflow-hidden rounded-xl border border-border bg-secondary/20"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt={study.title} className="h-full w-full object-cover" />
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  variants={fadeUp}
+                  className="flex aspect-video items-center justify-center rounded-xl border border-dashed border-border bg-secondary/20 text-sm text-muted-foreground"
+                >
+                  Image coming soon
+                </motion.div>
+              ))}
+            </div>
+          )}
         </Section>
 
         {/* Contact CTA */}

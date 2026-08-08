@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { siteConfig } from '@/lib/site-config';
 import { articleService } from '@/lib/services/article-service';
+import { caseStudyService } from '@/lib/services/case-study-service';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const routes = ['', '/about', '/case-studies', '/insights', '/resume', '/contact'];
@@ -13,7 +14,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route === '' ? 1 : 0.8,
   }));
 
-  const publishedArticles = await articleService.getPublished();
+  const [publishedArticles, publishedCaseStudies] = await Promise.all([
+    articleService.getPublished(),
+    caseStudyService.getPublished(),
+  ]);
 
   const articleRoutes = publishedArticles.map((article) => ({
     url: `${siteConfig.url}/insights/${article.slug}`,
@@ -22,5 +26,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...staticRoutes, ...articleRoutes];
+  const caseStudyRoutes = publishedCaseStudies.map((study) => ({
+    url: `${siteConfig.url}/case-studies/${study.slug}`,
+    lastModified: new Date(study.published_at || study.updated_at),
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }));
+
+  return [...staticRoutes, ...articleRoutes, ...caseStudyRoutes];
 }

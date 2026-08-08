@@ -60,16 +60,29 @@ export interface Article {
   tags?: Tag[];
 }
 
+export interface CaseStudyProcessStep {
+  title: string;
+  description: string;
+}
+
 export interface CaseStudy {
   id: string;
   title: string;
   slug: string;
+  role: string;
+  category: string;
+  summary: string;
+  client: string;
+  live_url: string;
+  github_url: string;
+  featured: boolean;
+  highlights: string[];
   overview: string;
   challenge: string;
   objectives: string;
   responsibilities: string;
   tools: string;
-  process: string;
+  process: CaseStudyProcessStep[];
   results: string;
   lessons: string;
   gallery: string[];

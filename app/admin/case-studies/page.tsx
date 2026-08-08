@@ -1,21 +1,20 @@
-'use client';
+import { createClient } from '@/lib/supabase/server';
+import { caseStudyService } from '@/lib/services/case-study-service';
+import { CaseStudiesManager } from '@/components/admin/case-studies-manager';
+import type { MediaItem } from '@/types';
 
-import { Container } from '@/components/layout/container';
-import { EmptyState } from '@/components/ui/empty-state';
-import { Briefcase } from 'lucide-react';
+export default async function AdminCaseStudiesPage() {
+  const supabase = createClient();
 
-export default function AdminCaseStudiesPage() {
+  const [caseStudies, mediaResult] = await Promise.all([
+    caseStudyService.getAll(),
+    supabase.from('media').select('*').eq('bucket', 'images').order('created_at', { ascending: false }),
+  ]);
+
   return (
-    <Container className="space-y-8 py-10">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Case Studies</h1>
-        <p className="text-sm text-muted-foreground">Manage your case studies.</p>
-      </div>
-      <EmptyState
-        icon={Briefcase}
-        title="No case studies yet"
-        description="Case studies you create will appear here."
-      />
-    </Container>
+    <CaseStudiesManager
+      initialCaseStudies={caseStudies}
+      mediaItems={(mediaResult.data ?? []) as MediaItem[]}
+    />
   );
 }

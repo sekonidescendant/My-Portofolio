@@ -64,17 +64,23 @@ export async function deleteArticle(id: string) {
 // ============================================================
 
 export async function createCaseStudy(input: Record<string, unknown>) {
+  const { user, error: authError } = await requireAdmin();
+  if (!user) return { success: false, error: authError };
+
   try {
-    await caseStudyService.create(input);
+    const study = await caseStudyService.create(input);
     revalidatePath('/admin/case-studies');
     revalidatePath('/case-studies');
-    return { success: true };
+    return { success: true, id: study.id };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Failed to create case study.' };
   }
 }
 
 export async function updateCaseStudy(id: string, input: Record<string, unknown>) {
+  const { user, error: authError } = await requireAdmin();
+  if (!user) return { success: false, error: authError };
+
   try {
     await caseStudyService.update(id, input);
     revalidatePath('/admin/case-studies');
@@ -86,6 +92,9 @@ export async function updateCaseStudy(id: string, input: Record<string, unknown>
 }
 
 export async function deleteCaseStudy(id: string) {
+  const { user, error: authError } = await requireAdmin();
+  if (!user) return { success: false, error: authError };
+
   try {
     await caseStudyService.remove(id);
     revalidatePath('/admin/case-studies');

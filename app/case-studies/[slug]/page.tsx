@@ -1,25 +1,25 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { CaseStudyLayout } from '@/components/case-studies/case-study-layout';
-import { caseStudies, getCaseStudy } from '@/lib/case-studies';
 import { createMetadata } from '@/lib/seo';
+import { caseStudyService } from '@/lib/services/case-study-service';
+import { toCaseStudyData } from '@/lib/case-studies-db';
 
-export function generateStaticParams() {
-  return caseStudies.map((cs) => ({ slug: cs.slug }));
-}
+export const dynamic = 'force-dynamic';
 
-export function generateMetadata({
+export async function generateMetadata({
   params,
 }: {
   params: { slug: string };
-}): Metadata {
-  const study = getCaseStudy(params.slug);
-  if (!study) {
+}): Promise<Metadata> {
+  const dbStudy = await caseStudyService.getBySlug(params.slug);
+  if (!dbStudy) {
     return createMetadata({
       title: 'Case Study',
       path: '/case-studies',
     });
   }
+  const study = toCaseStudyData(dbStudy);
   return createMetadata({
     title: study.title,
     description: study.summary,
@@ -27,12 +27,13 @@ export function generateMetadata({
   });
 }
 
-export default function CaseStudyPage({
+export default async function CaseStudyPage({
   params,
 }: {
   params: { slug: string };
 }) {
-  const study = getCaseStudy(params.slug);
-  if (!study) notFound();
+  const dbStudy = await caseStudyService.getBySlug(params.slug);
+  if (!dbStudy) notFound();
+  const study = toCaseStudyData(dbStudy);
   return <CaseStudyLayout study={study} />;
 }
