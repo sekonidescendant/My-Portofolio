@@ -63,14 +63,25 @@ function useCopy() {
   return { copied, copy };
 }
 
-function ActionBar() {
+function triggerDownload(url: string) {
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = '';
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function ActionBar({ primaryResumeUrl }: { primaryResumeUrl?: string }) {
   const { copied, copy } = useCopy();
   const actions = [
     {
       key: 'download',
       label: 'Download Resume',
       icon: Download,
-      onClick: () => window.print(),
+      onClick: () => (primaryResumeUrl ? triggerDownload(primaryResumeUrl) : window.print()),
     },
     {
       key: 'print',
@@ -221,7 +232,7 @@ export function ResumeExperience({ resumeFiles }: { resumeFiles: ResumeFile[] })
           </motion.p>
         </motion.div>
 
-        <ActionBar />
+        <ActionBar primaryResumeUrl={resumeFiles[0]?.url} />
 
         {/* Professional Summary */}
         <motion.section
