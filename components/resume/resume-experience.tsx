@@ -87,7 +87,8 @@ function ActionBar({ primaryResumeUrl }: { primaryResumeUrl?: string }) {
       key: 'print',
       label: 'Print Resume',
       icon: Printer,
-      onClick: () => window.print(),
+      onClick: () =>
+        primaryResumeUrl ? window.open(primaryResumeUrl, '_blank', 'noopener,noreferrer') : window.print(),
     },
     {
       key: 'email',
