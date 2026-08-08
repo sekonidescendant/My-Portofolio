@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { requireAdmin } from '@/lib/require-admin';
 import { articleService } from '@/lib/services/article-service';
 import { caseStudyService } from '@/lib/services/case-study-service';
 import {
@@ -9,29 +10,18 @@ import {
   resumeFileService,
   documentService,
 } from '@/lib/services/content-services';
-import { sanitizeHtml } from '@/lib/sanitize-html';
-import { estimateReadingTime } from '@/lib/reading-time';
 
 // ============================================================
 // ARTICLES
 // ============================================================
 
-function prepareArticleInput(input: Record<string, unknown>) {
-  const prepared = { ...input };
-  if (typeof prepared.content === 'string') {
-    const clean = sanitizeHtml(prepared.content);
-    prepared.content = clean;
-    prepared.reading_time = estimateReadingTime(clean);
-  }
-  if (prepared.status === 'published' && !prepared.published_at) {
-    prepared.published_at = new Date().toISOString();
-  }
-  return prepared;
-}
+export async function createArticle(input: Record<string, unknown>, tagIds: string[] = []) {
+  const { user, error: authError } = await requireAdmin();
+  if (!user) return { success: false, error: authError };
 
-export async function createArticle(input: Record<string, unknown>) {
   try {
-    const article = await articleService.create(prepareArticleInput(input));
+    const article = await articleService.create(input);
+    if (tagIds.length) await articleService.setTags(article.id, tagIds);
     revalidatePath('/admin/articles');
     revalidatePath('/insights');
     return { success: true, id: article.id };
@@ -40,9 +30,13 @@ export async function createArticle(input: Record<string, unknown>) {
   }
 }
 
-export async function updateArticle(id: string, input: Record<string, unknown>) {
+export async function updateArticle(id: string, input: Record<string, unknown>, tagIds?: string[]) {
+  const { user, error: authError } = await requireAdmin();
+  if (!user) return { success: false, error: authError };
+
   try {
-    await articleService.update(id, prepareArticleInput(input));
+    await articleService.update(id, input);
+    if (tagIds !== undefined) await articleService.setTags(id, tagIds);
     revalidatePath('/admin/articles');
     revalidatePath('/insights');
     return { success: true };
@@ -51,18 +45,10 @@ export async function updateArticle(id: string, input: Record<string, unknown>) 
   }
 }
 
-export async function setArticleTags(articleId: string, tagIds: string[]) {
-  try {
-    await articleService.setTags(articleId, tagIds);
-    revalidatePath('/admin/articles');
-    revalidatePath('/insights');
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Failed to set tags.' };
-  }
-}
-
 export async function deleteArticle(id: string) {
+  const { user, error: authError } = await requireAdmin();
+  if (!user) return { success: false, error: authError };
+
   try {
     await articleService.remove(id);
     revalidatePath('/admin/articles');
@@ -115,6 +101,9 @@ export async function deleteCaseStudy(id: string) {
 // ============================================================
 
 export async function createCategory(input: { name: string; slug: string; description?: string }) {
+  const { user, error: authError } = await requireAdmin();
+  if (!user) return { success: false, error: authError };
+
   try {
     const category = await categoryService.create(input);
     revalidatePath('/admin/articles');
@@ -125,6 +114,9 @@ export async function createCategory(input: { name: string; slug: string; descri
 }
 
 export async function deleteCategory(id: string) {
+  const { user, error: authError } = await requireAdmin();
+  if (!user) return { success: false, error: authError };
+
   try {
     await categoryService.remove(id);
     revalidatePath('/admin/articles');
@@ -135,6 +127,9 @@ export async function deleteCategory(id: string) {
 }
 
 export async function createTag(input: { name: string; slug: string }) {
+  const { user, error: authError } = await requireAdmin();
+  if (!user) return { success: false, error: authError };
+
   try {
     const tag = await tagService.create(input);
     revalidatePath('/admin/articles');
@@ -145,6 +140,9 @@ export async function createTag(input: { name: string; slug: string }) {
 }
 
 export async function deleteTag(id: string) {
+  const { user, error: authError } = await requireAdmin();
+  if (!user) return { success: false, error: authError };
+
   try {
     await tagService.remove(id);
     revalidatePath('/admin/articles');

@@ -1,63 +1,38 @@
 import { createClient } from '@/lib/supabase/server';
-import type { Article, Tag } from '@/lib/types/database';
-
-const SELECT_WITH_RELATIONS = '*, category:categories(*), article_tags(tag:tags(*))';
-
-type RawArticleRow = Article & {
-  article_tags?: { tag: Tag | null }[] | null;
-};
-
-function flattenTags(row: RawArticleRow): Article {
-  const { article_tags, ...rest } = row;
-  return {
-    ...rest,
-    tags: (article_tags ?? []).map((row) => row.tag).filter((tag): tag is Tag => Boolean(tag)),
-  };
-}
+import type { Article } from '@/lib/types/database';
 
 export const articleService = {
   async getPublished(): Promise<Article[]> {
     const supabase = createClient();
     const { data, error } = await supabase
       .from('articles')
-      .select(SELECT_WITH_RELATIONS)
+      .select('*, category:categories(*)')
       .eq('status', 'published')
       .order('published_at', { ascending: false });
     if (error) throw error;
-    return ((data ?? []) as unknown as RawArticleRow[]).map(flattenTags);
+    return (data ?? []) as Article[];
   },
 
   async getBySlug(slug: string): Promise<Article | null> {
     const supabase = createClient();
     const { data, error } = await supabase
       .from('articles')
-      .select(SELECT_WITH_RELATIONS)
+      .select('*, category:categories(*)')
       .eq('slug', slug)
       .eq('status', 'published')
       .maybeSingle();
     if (error) throw error;
-    return data ? flattenTags(data as unknown as RawArticleRow) : null;
-  },
-
-  async getById(id: string): Promise<Article | null> {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from('articles')
-      .select(SELECT_WITH_RELATIONS)
-      .eq('id', id)
-      .maybeSingle();
-    if (error) throw error;
-    return data ? flattenTags(data as unknown as RawArticleRow) : null;
+    return data as Article | null;
   },
 
   async getAll(): Promise<Article[]> {
     const supabase = createClient();
     const { data, error } = await supabase
       .from('articles')
-      .select(SELECT_WITH_RELATIONS)
+      .select('*, category:categories(*)')
       .order('created_at', { ascending: false });
     if (error) throw error;
-    return ((data ?? []) as unknown as RawArticleRow[]).map(flattenTags);
+    return (data ?? []) as Article[];
   },
 
   async create(input: Partial<Article>): Promise<Article> {
@@ -87,6 +62,16 @@ export const articleService = {
     const supabase = createClient();
     const { error } = await supabase.from('articles').delete().eq('id', id);
     if (error) throw error;
+  },
+
+  async getTagIds(articleId: string): Promise<string[]> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('article_tags')
+      .select('tag_id')
+      .eq('article_id', articleId);
+    if (error) throw error;
+    return (data ?? []).map((row) => row.tag_id as string);
   },
 
   async setTags(articleId: string, tagIds: string[]): Promise<void> {

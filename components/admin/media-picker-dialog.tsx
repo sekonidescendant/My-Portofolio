@@ -1,152 +1,125 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { toast } from 'sonner';
-import { ImagePlus, Loader2, UploadCloud, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { ImageIcon, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { listImageMediaAction, uploadMediaAction } from '@/app/admin/media/actions';
-
-type MediaOption = { id: string; url: string; file_name: string; alt_text: string };
+import { EmptyState } from '@/components/ui/empty-state';
+import { cn } from '@/lib/utils';
+import type { MediaItem } from '@/types';
 
 export function MediaPickerDialog({
-  open,
-  onOpenChange,
-  onSelect,
+  items,
+  value,
+  onChange,
+  trigger,
 }: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSelect: (item: { id: string; url: string }) => void;
+  items: MediaItem[];
+  value: { id: string; url: string } | null;
+  onChange: (item: { id: string; url: string } | null) => void;
+  trigger?: React.ReactNode;
 }) {
-  const [items, setItems] = useState<MediaOption[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    if (!open) return;
-    setLoading(true);
-    listImageMediaAction().then((result) => {
-      setLoading(false);
-      if (result.ok) setItems(result.items);
-      else toast.error(result.error);
-    });
-  }, [open]);
+  const images = useMemo(() => items.filter((item) => item.bucket === 'images'), [items]);
 
-  async function handleUpload(file: File) {
-    setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('bucket', 'images');
-    formData.append('folder', 'articles');
-    const result = await uploadMediaAction(formData);
-    setUploading(false);
-    if (!result.ok) {
-      toast.error(result.error);
-      return;
-    }
-    const refreshed = await listImageMediaAction();
-    if (refreshed.ok) setItems(refreshed.items);
-  }
+  const filtered = useMemo(() => {
+    if (!search.trim()) return images;
+    const q = search.trim().toLowerCase();
+    return images.filter((item) => item.file_name.toLowerCase().includes(q));
+  }, [images, search]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Choose a featured image</DialogTitle>
-        </DialogHeader>
-
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">Pick from your media library, or upload a new one.</p>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            disabled={uploading}
-            onClick={() => inputRef.current?.click()}
-          >
-            {uploading ? (
-              <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <UploadCloud className="mr-2 h-3.5 w-3.5" />
-            )}
-            Upload new
-          </Button>
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleUpload(file);
-              e.target.value = '';
-            }}
-          />
-        </div>
-
-        <div className="grid max-h-96 grid-cols-3 gap-3 overflow-y-auto sm:grid-cols-4">
-          {loading ? (
-            <div className="col-span-full flex items-center justify-center py-10 text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin" />
-            </div>
-          ) : items.length === 0 ? (
-            <div className="col-span-full flex flex-col items-center gap-2 py-10 text-muted-foreground">
-              <ImagePlus className="h-6 w-6" />
-              <p className="text-xs">No images yet — upload one above.</p>
-            </div>
+    <>
+      <div className="space-y-2">
+        {value ? (
+          <div className="relative w-full max-w-xs overflow-hidden rounded-lg border border-border">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={value.url} alt="Featured" className="aspect-video w-full object-cover" />
+            <Button
+              type="button"
+              size="icon"
+              variant="secondary"
+              className="absolute right-2 top-2 h-7 w-7"
+              onClick={() => onChange(null)}
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        ) : (
+          <div className="flex aspect-video w-full max-w-xs items-center justify-center rounded-lg border border-dashed border-border bg-secondary/30">
+            <ImageIcon className="h-6 w-6 text-muted-foreground" />
+          </div>
+        )}
+        <div>
+          {trigger ? (
+            <span onClick={() => setOpen(true)}>{trigger}</span>
           ) : (
-            items.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  onSelect({ id: item.id, url: item.url });
-                  onOpenChange(false);
-                }}
-                className="group relative aspect-square overflow-hidden rounded-md border border-border"
-                title={item.file_name}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={item.url}
-                  alt={item.alt_text || item.file_name}
-                  className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                />
-              </button>
-            ))
+            <Button type="button" variant="outline" size="sm" onClick={() => setOpen(true)}>
+              {value ? 'Change image' : 'Choose from Media Library'}
+            </Button>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
+      </div>
 
-export function ClearableFeaturedImage({
-  url,
-  onClear,
-}: {
-  url: string;
-  onClear: () => void;
-}) {
-  return (
-    <div className="relative w-full max-w-xs overflow-hidden rounded-md border border-border">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={url} alt="Featured" className="aspect-video w-full object-cover" />
-      <Button
-        type="button"
-        size="icon"
-        variant="secondary"
-        className="absolute right-2 top-2 h-7 w-7"
-        onClick={onClear}
-      >
-        <X className="h-3.5 w-3.5" />
-      </Button>
-    </div>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-h-[85vh] max-w-2xl overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Choose an image</DialogTitle>
+          </DialogHeader>
+
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search images..."
+              className="pl-8"
+            />
+          </div>
+
+          <div className="max-h-[55vh] overflow-y-auto">
+            {filtered.length === 0 ? (
+              <EmptyState
+                icon={ImageIcon}
+                title="No images found"
+                description="Upload images in the Media Library first."
+              />
+            ) : (
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                {filtered.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      onChange({ id: item.id, url: item.url });
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      'group relative aspect-square overflow-hidden rounded-lg border-2 transition-colors',
+                      value?.id === item.id ? 'border-primary' : 'border-transparent hover:border-border',
+                    )}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={item.url}
+                      alt={item.alt_text || item.file_name}
+                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
