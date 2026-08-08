@@ -49,7 +49,7 @@ export type ResumeSection = {
   entries: TimelineEntry[];
 };
 
-export type MediaBucket = 'images' | 'videos' | 'documents';
+export type MediaBucket = 'images' | 'videos' | 'documents' | 'resume';
 
 export type MediaItem = {
   id: string;

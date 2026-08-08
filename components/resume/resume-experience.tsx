@@ -37,8 +37,8 @@ import {
   certifications,
   education,
   achievements,
-  downloads,
 } from '@/lib/resume-data';
+import type { ResumeFile } from '@/lib/types/database';
 
 const toolIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   MessageSquare,
@@ -190,7 +190,7 @@ function ExpandableTimelineCard({
   );
 }
 
-export function ResumeExperience() {
+export function ResumeExperience({ resumeFiles }: { resumeFiles: ResumeFile[] }) {
   return (
     <PageWrapper>
       <Container className="space-y-20">
@@ -485,38 +485,44 @@ export function ResumeExperience() {
             title="Download"
             description="Resume and portfolio documents for easy sharing."
           />
-          <motion.div
-            variants={staggerContainer(0.08)}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-80px' }}
-            className="grid gap-4 sm:grid-cols-3"
-          >
-            {downloads.map((dl) => (
-              <motion.div
-                key={dl.label}
-                variants={fadeUp}
-                whileHover={{ y: -4 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                className="group flex flex-col gap-3 rounded-xl border border-border bg-card p-6 shadow-soft transition-colors hover:border-primary/40"
-              >
-                <div className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-secondary/60 text-primary transition-colors group-hover:border-primary/40 group-hover:bg-primary/10">
-                  <Download className="h-5 w-5" />
-                </span>
-                <h3 className="text-base font-semibold tracking-tight">
-                  {dl.label}
-                </h3>
-                <p className="text-sm text-muted-foreground">{dl.description}</p>
-                <Button variant="outline" size="sm" className="mt-auto" asChild>
-                  <Link href={dl.href}>
-                    <Download className="mr-1.5 h-3.5 w-3.5" />
-                    Download
-                  </Link>
-                </Button>
-              </motion.div>
-            ))}
-          </motion.div>
+          {resumeFiles.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border bg-secondary/20 px-6 py-12 text-center">
+              <p className="text-sm text-muted-foreground">No resume files available yet.</p>
+            </div>
+          ) : (
+            <motion.div
+              variants={staggerContainer(0.08)}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-80px' }}
+              className="grid gap-4 sm:grid-cols-3"
+            >
+              {resumeFiles.map((file) => (
+                <motion.div
+                  key={file.id}
+                  variants={fadeUp}
+                  whileHover={{ y: -4 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                  className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-border bg-card p-6 shadow-soft transition-colors hover:border-primary/40"
+                >
+                  <div className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                  <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-secondary/60 text-primary transition-colors group-hover:border-primary/40 group-hover:bg-primary/10">
+                    <Download className="h-5 w-5" />
+                  </span>
+                  <h3 className="text-base font-semibold tracking-tight">
+                    {file.label}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">{file.description}</p>
+                  <Button variant="outline" size="sm" className="mt-auto" asChild>
+                    <a href={file.url} target="_blank" rel="noopener noreferrer" download>
+                      <Download className="mr-1.5 h-3.5 w-3.5" />
+                      Download
+                    </a>
+                  </Button>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
         </section>
 
         {/* Contact CTA */}

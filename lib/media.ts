@@ -1,5 +1,9 @@
 import type { MediaBucket } from '@/types';
 
+// 'resume' deliberately excluded from these two: resume files go through the
+// dedicated /admin/resume upload flow (writing to resume_files), not the
+// generic Media Library (which writes to the media table) — keeping it out
+// of the generic bucket list avoids two systems tracking the same files.
 export const PUBLIC_BUCKETS: MediaBucket[] = ['images', 'videos'];
 export const ALLOWED_BUCKETS: MediaBucket[] = ['images', 'videos', 'documents'];
 
@@ -7,12 +11,14 @@ export const MAX_SIZE_BYTES: Record<MediaBucket, number> = {
   images: 8 * 1024 * 1024, // 8MB
   videos: 200 * 1024 * 1024, // 200MB
   documents: 25 * 1024 * 1024, // 25MB
+  resume: 10 * 1024 * 1024, // 10MB
 };
 
 export const ALLOWED_MIME: Record<MediaBucket, string[]> = {
   images: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'],
   videos: ['video/mp4', 'video/webm', 'video/quicktime'],
   documents: ['application/pdf'],
+  resume: ['application/pdf'],
 };
 
 export function bucketForMimeType(mimeType: string): MediaBucket | null {

@@ -166,6 +166,9 @@ export async function deleteTag(id: string) {
 // ============================================================
 
 export async function createResumeFile(input: Record<string, unknown>) {
+  const { user, error: authError } = await requireAdmin();
+  if (!user) return { success: false, error: authError };
+
   try {
     await resumeFileService.create(input);
     revalidatePath('/admin/resume');
@@ -177,6 +180,9 @@ export async function createResumeFile(input: Record<string, unknown>) {
 }
 
 export async function updateResumeFile(id: string, input: Record<string, unknown>) {
+  const { user, error: authError } = await requireAdmin();
+  if (!user) return { success: false, error: authError };
+
   try {
     await resumeFileService.update(id, input);
     revalidatePath('/admin/resume');
@@ -188,6 +194,9 @@ export async function updateResumeFile(id: string, input: Record<string, unknown
 }
 
 export async function deleteResumeFile(id: string) {
+  const { user, error: authError } = await requireAdmin();
+  if (!user) return { success: false, error: authError };
+
   try {
     await resumeFileService.remove(id);
     revalidatePath('/admin/resume');
