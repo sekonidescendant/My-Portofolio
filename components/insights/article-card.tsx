@@ -16,15 +16,26 @@ export function ArticleCard({ article }: { article: ArticleData }) {
       className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-soft transition-colors hover:border-primary/40"
     >
       <Link href={`/insights/${article.slug}`} className="flex h-full flex-col">
-        {/* Cover placeholder */}
+        {/* Cover */}
         <div className="relative aspect-video overflow-hidden border-b border-border bg-secondary/30">
-          <div className="absolute inset-0 surface-gradient" />
-          <div className="absolute inset-0 grid-bg bg-grid-pattern bg-grid-32 opacity-20" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-              Content coming soon
-            </span>
-          </div>
+          {article.featuredImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={article.featuredImageUrl}
+              alt={article.title}
+              className="h-full w-full object-cover transition-transform group-hover:scale-105"
+            />
+          ) : (
+            <>
+              <div className="absolute inset-0 surface-gradient" />
+              <div className="absolute inset-0 grid-bg bg-grid-pattern bg-grid-32 opacity-20" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                  Content coming soon
+                </span>
+              </div>
+            </>
+          )}
           <div className="absolute left-4 top-4">
             <Tag className="bg-background/80 backdrop-blur-sm">{article.category}</Tag>
           </div>

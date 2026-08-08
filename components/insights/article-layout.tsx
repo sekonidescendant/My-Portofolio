@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { ArticleCard } from '@/components/insights/article-card';
 import { siteConfig } from '@/lib/site-config';
 import { fadeUp, staggerContainer } from '@/lib/animations';
+import { markdownToHtml } from '@/lib/markdown';
 import type { ArticleData } from '@/lib/articles';
 
 function ReadingProgressBar() {
@@ -84,13 +85,6 @@ export function ArticleLayout({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const toc = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'challenge', label: 'The Challenge' },
-    { id: 'approach', label: 'Approach' },
-    { id: 'takeaways', label: 'Key Takeaways' },
-  ];
-
   return (
     <PageWrapper>
       {mounted && <ReadingProgressBar />}
@@ -143,86 +137,57 @@ export function ArticleLayout({
           </motion.div>
         </motion.div>
 
-        {/* Cover placeholder */}
+        {/* Cover */}
         <motion.div
           variants={fadeUp}
           initial="hidden"
           animate="visible"
           className="relative aspect-[2/1] overflow-hidden rounded-2xl border border-border bg-secondary/30"
         >
-          <div className="absolute inset-0 surface-gradient" />
-          <div className="absolute inset-0 grid-bg bg-grid-pattern bg-grid-32 opacity-20" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
-              Content coming soon
-            </span>
-          </div>
+          {article.featuredImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={article.featuredImageUrl} alt={article.title} className="h-full w-full object-cover" />
+          ) : (
+            <>
+              <div className="absolute inset-0 surface-gradient" />
+              <div className="absolute inset-0 grid-bg bg-grid-pattern bg-grid-32 opacity-20" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
+                  Content coming soon
+                </span>
+              </div>
+            </>
+          )}
         </motion.div>
 
-        {/* Body with TOC */}
+        {/* Body */}
         <div className="grid gap-12 lg:grid-cols-[220px_1fr]">
-          {/* Table of Contents */}
+          {/* Sidebar */}
           <aside className="hidden lg:block">
             <div className="sticky top-24 space-y-4">
               <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                Contents
+                Estimated Reading Time
               </p>
-              <nav className="space-y-2 border-l border-border pl-4">
-                {toc.map((item) => (
-                  <a
-                    key={item.id}
-                    href={`#${item.id}`}
-                    className="block text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {item.label}
-                  </a>
-                ))}
-              </nav>
-              <div className="pt-4">
-                <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                  Estimated Reading Time
-                </p>
-                <p className="mt-1 text-sm font-medium text-foreground">
-                  {article.readingTime}
-                </p>
-              </div>
+              <p className="text-sm font-medium text-foreground">
+                {article.readingTime}
+              </p>
             </div>
           </aside>
 
-          {/* Article body placeholder */}
+          {/* Article content */}
           <div className="space-y-8">
-            <div id="overview" className="space-y-4">
-              <h2 className="text-xl font-semibold tracking-tight">Overview</h2>
+            {article.content ? (
+              <div
+                className="md-preview"
+                dangerouslySetInnerHTML={{ __html: markdownToHtml(article.content) }}
+              />
+            ) : (
               <div className="rounded-xl border border-dashed border-border bg-secondary/20 px-6 py-12 text-center">
                 <p className="text-sm text-muted-foreground">
                   Content coming soon.
                 </p>
               </div>
-            </div>
-            <div id="challenge" className="space-y-4">
-              <h2 className="text-xl font-semibold tracking-tight">The Challenge</h2>
-              <div className="rounded-xl border border-dashed border-border bg-secondary/20 px-6 py-12 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Content coming soon.
-                </p>
-              </div>
-            </div>
-            <div id="approach" className="space-y-4">
-              <h2 className="text-xl font-semibold tracking-tight">Approach</h2>
-              <div className="rounded-xl border border-dashed border-border bg-secondary/20 px-6 py-12 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Content coming soon.
-                </p>
-              </div>
-            </div>
-            <div id="takeaways" className="space-y-4">
-              <h2 className="text-xl font-semibold tracking-tight">Key Takeaways</h2>
-              <div className="rounded-xl border border-dashed border-border bg-secondary/20 px-6 py-12 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Content coming soon.
-                </p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 

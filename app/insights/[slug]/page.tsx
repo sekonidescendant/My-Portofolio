@@ -1,29 +1,30 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ArticleLayout } from '@/components/insights/article-layout';
-import { articles, getArticle, getRelatedArticles } from '@/lib/articles';
 import { createMetadata } from '@/lib/seo';
 import { siteConfig } from '@/lib/site-config';
+import { articleService } from '@/lib/services/article-service';
+import { toArticleData } from '@/lib/articles-db';
 
-export function generateStaticParams() {
-  return articles.map((a) => ({ slug: a.slug }));
-}
+export const dynamic = 'force-dynamic';
 
-export function generateMetadata({
+export async function generateMetadata({
   params,
 }: {
   params: { slug: string };
-}): Metadata {
-  const article = getArticle(params.slug);
-  if (!article) {
+}): Promise<Metadata> {
+  const dbArticle = await articleService.getBySlug(params.slug);
+  if (!dbArticle) {
     return createMetadata({
       title: 'Article',
       path: '/insights',
     });
   }
+  const article = toArticleData(dbArticle);
 
   const url = `${siteConfig.url}/insights/${article.slug}`;
   const title = `${article.title} · ${siteConfig.author.name}`;
+  const ogImage = article.featuredImageUrl || `${siteConfig.url}/og.png`;
 
   return {
     metadataBase: new URL(siteConfig.url),
@@ -38,13 +39,13 @@ export function generateMetadata({
       siteName: siteConfig.author.name,
       publishedTime: article.publishedAt,
       authors: [siteConfig.author.name],
-      images: [{ url: `${siteConfig.url}/og.png`, width: 1200, height: 630, alt: article.title }],
+      images: [{ url: ogImage, width: 1200, height: 630, alt: article.title }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description: article.summary,
-      images: [`${siteConfig.url}/og.png`],
+      images: [ogImage],
     },
     other: {
       'application/ld+json': JSON.stringify({
@@ -68,13 +69,26 @@ export function generateMetadata({
   };
 }
 
-export default function ArticlePage({
+export default async function ArticlePage({
   params,
 }: {
   params: { slug: string };
 }) {
-  const article = getArticle(params.slug);
-  if (!article) notFound();
-  const related = getRelatedArticles(article.slug, article.category);
+  const dbArticle = await articleService.getBySlug(params.slug);
+  if (!dbArticle) notFound();
+
+  const article = toArticleData(dbArticle);
+
+  const allPublished = await articleService.getPublished();
+  const related = allPublished
+    .filter(
+      (a) =>
+        a.slug !== article.slug &&
+        dbArticle.category_id !== null &&
+        a.category_id === dbArticle.category_id,
+    )
+    .slice(0, 3)
+    .map(toArticleData);
+
   return <ArticleLayout article={article} related={related} />;
 }

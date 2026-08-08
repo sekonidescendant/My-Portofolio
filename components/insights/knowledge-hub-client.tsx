@@ -11,11 +11,11 @@ import { Tag } from '@/components/ui/tag';
 import { Button } from '@/components/ui/button';
 import { ArticleCard } from '@/components/insights/article-card';
 import {
-  articles,
   articleCategories,
   writingTimeline,
   videoEntries,
   type ArticleCategory,
+  type ArticleData,
 } from '@/lib/articles';
 import { fadeUp, staggerContainer } from '@/lib/animations';
 
@@ -23,7 +23,7 @@ type Filter = 'All' | ArticleCategory;
 
 const filters: Filter[] = ['All', ...articleCategories];
 
-export function KnowledgeHubClient() {
+export function KnowledgeHubClient({ articles }: { articles: ArticleData[] }) {
   const [activeFilter, setActiveFilter] = useState<Filter>('All');
   const [query, setQuery] = useState('');
 
@@ -37,9 +37,9 @@ export function KnowledgeHubClient() {
         a.category.toLowerCase().includes(query.toLowerCase());
       return matchesFilter && matchesQuery;
     });
-  }, [activeFilter, query]);
+  }, [articles, activeFilter, query]);
 
-  const featured = articles.find((a) => a.featured) ?? articles[0];
+  const featured = articles[0];
 
   return (
     <PageWrapper>
@@ -89,6 +89,7 @@ export function KnowledgeHubClient() {
         </motion.div>
 
         {/* Featured Article */}
+        {featured && (
         <motion.section
           variants={staggerContainer(0.1)}
           initial="hidden"
@@ -103,13 +104,24 @@ export function KnowledgeHubClient() {
             <div className="grid gap-0 md:grid-cols-2">
               {/* Cover */}
               <div className="relative aspect-video overflow-hidden border-b border-border bg-secondary/30 md:border-b-0 md:border-r">
-                <div className="absolute inset-0 surface-gradient" />
-                <div className="absolute inset-0 grid-bg bg-grid-pattern bg-grid-32 opacity-20" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                    Coming Soon
-                  </span>
-                </div>
+                {featured.featuredImageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={featured.featuredImageUrl}
+                    alt={featured.title}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <>
+                    <div className="absolute inset-0 surface-gradient" />
+                    <div className="absolute inset-0 grid-bg bg-grid-pattern bg-grid-32 opacity-20" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
+                        Coming Soon
+                      </span>
+                    </div>
+                  </>
+                )}
                 <div className="absolute left-5 top-5 flex gap-2">
                   <span className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
                     <Sparkles className="h-3 w-3" />
@@ -139,6 +151,7 @@ export function KnowledgeHubClient() {
             </div>
           </Link>
         </motion.section>
+        )}
 
         {/* Search + Categories */}
         <section className="space-y-6">

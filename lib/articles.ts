@@ -25,6 +25,8 @@ export interface ArticleData {
   summary: string;
   publishedAt: string;
   featured?: boolean;
+  content?: string;
+  featuredImageUrl?: string | null;
 }
 
 export const articles: ArticleData[] = [

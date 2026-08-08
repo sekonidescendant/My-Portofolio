@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import { KnowledgeHubClient } from '@/components/insights/knowledge-hub-client';
 import { createMetadata } from '@/lib/seo';
+import { articleService } from '@/lib/services/article-service';
+import { toArticleData } from '@/lib/articles-db';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = createMetadata({
   title: 'Knowledge Hub',
@@ -9,6 +13,9 @@ export const metadata: Metadata = createMetadata({
   path: '/insights',
 });
 
-export default function KnowledgeHubPage() {
-  return <KnowledgeHubClient />;
+export default async function KnowledgeHubPage() {
+  const dbArticles = await articleService.getPublished();
+  const articles = dbArticles.map(toArticleData);
+
+  return <KnowledgeHubClient articles={articles} />;
 }
