@@ -18,6 +18,9 @@ import { siteConfig } from '@/lib/site-config';
 export function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [formRenderedAt] = useState(() => Date.now());
+
+  const [honeypot, setHoneypot] = useState('');
 
   const {
     register,
@@ -45,6 +48,8 @@ export function ContactForm() {
       role: values.role || undefined,
       message: values.message,
       job_opportunity: values.jobOpportunity ?? false,
+      honeypot,
+      formRenderedAt,
     });
     if (result.success) {
       reset();
@@ -95,6 +100,19 @@ export function ContactForm() {
       className="space-y-5"
       noValidate
     >
+      {/* Honeypot: hidden from real visitors, bots that auto-fill every field trip it. */}
+      <div style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden' }} aria-hidden="true">
+        <label htmlFor="website">Website</label>
+        <input
+          id="website"
+          name="website"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+        />
+      </div>
       <div className="grid gap-5 sm:grid-cols-2">
         <motion.div variants={fadeUp} className="space-y-2">
           <Label htmlFor="name">Name</Label>

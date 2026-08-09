@@ -85,24 +85,29 @@ export function ResumeManager({ initialFiles }: { initialFiles: ResumeFile[] }) 
       return;
     }
     setUploading(true);
-    const formData = new FormData();
-    formData.set('file', uploadFile);
-    formData.set('label', uploadLabel.trim());
-    formData.set('description', uploadDescription.trim());
+    try {
+      const formData = new FormData();
+      formData.set('file', uploadFile);
+      formData.set('label', uploadLabel.trim());
+      formData.set('description', uploadDescription.trim());
 
-    const result = await uploadResumeFileAction(formData);
-    setUploading(false);
+      const result = await uploadResumeFileAction(formData);
 
-    if (!result.ok) {
-      toast.error(result.error);
-      return;
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success('Resume file uploaded');
+      setUploadOpen(false);
+      setUploadLabel('');
+      setUploadDescription('');
+      setUploadFile(null);
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Upload failed unexpectedly.');
+    } finally {
+      setUploading(false);
     }
-    toast.success('Resume file uploaded');
-    setUploadOpen(false);
-    setUploadLabel('');
-    setUploadDescription('');
-    setUploadFile(null);
-    router.refresh();
   }
 
   function openEdit(file: ResumeFile) {

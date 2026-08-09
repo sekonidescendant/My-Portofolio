@@ -30,11 +30,11 @@ export const contactService = {
     return (data ?? []) as ContactMessage[];
   },
 
-  async markAsRead(id: string): Promise<void> {
+  async setReadStatus(id: string, isRead: boolean): Promise<void> {
     const supabase = createClient();
     const { error } = await supabase
       .from('contact_messages')
-      .update({ is_read: true })
+      .update({ is_read: isRead })
       .eq('id', id);
     if (error) throw error;
   },
