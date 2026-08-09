@@ -8,6 +8,7 @@ import { Footer } from '@/components/layout/footer';
 import { Toaster } from '@/components/ui/sonner';
 import { siteConfig } from '@/lib/site-config';
 import { createMetadata } from '@/lib/seo';
+import { settingsService } from '@/lib/services/contact-settings-service';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -36,14 +37,22 @@ const jsonLd = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Settings are optional — if the fetch fails or no row exists yet, every
+  // consumer below falls back to the static siteConfig defaults, so the
+  // site never breaks over a Settings hiccup.
+  const settings = await settingsService.get().catch(() => null);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {settings?.favicon_url && (
+          <link rel="icon" href={settings.favicon_url} />
+        )}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -59,9 +68,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Providers>
-            <Navbar />
+            <Navbar logoUrl={settings?.logo_url || undefined} />
             <main>{children}</main>
-            <Footer />
+            <Footer settings={settings} />
             <Toaster position="bottom-right" />
           </Providers>
         </ThemeProvider>

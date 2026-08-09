@@ -79,9 +79,13 @@ export async function deleteMessage(id: string) {
 }
 
 export async function updateSettings(input: Record<string, unknown>) {
+  const { user, error: authError } = await requireAdmin();
+  if (!user) return { success: false, error: authError };
+
   try {
     await settingsService.update(input);
     revalidatePath('/admin/settings');
+    revalidatePath('/', 'layout');
     return { success: true };
   } catch (error) {
     return {

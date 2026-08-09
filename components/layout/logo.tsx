@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { siteConfig } from '@/lib/site-config';
 
-export function Logo({ className }: { className?: string }) {
+export function Logo({ className, logoUrl }: { className?: string; logoUrl?: string }) {
   const pathname = usePathname();
   const isHome = pathname === '/';
 
@@ -19,9 +19,18 @@ export function Logo({ className }: { className?: string }) {
       )}
       aria-label={`${siteConfig.author.name} home`}
     >
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-soft transition-transform duration-300 group-hover:scale-105">
-        <span className="text-sm font-bold">{siteConfig.author.name.charAt(0)}</span>
-      </span>
+      {logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={logoUrl}
+          alt={siteConfig.author.name}
+          className="h-8 w-8 rounded-lg object-cover shadow-soft transition-transform duration-300 group-hover:scale-105"
+        />
+      ) : (
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-soft transition-transform duration-300 group-hover:scale-105">
+          <span className="text-sm font-bold">{siteConfig.author.name.charAt(0)}</span>
+        </span>
+      )}
       <span className="hidden sm:inline">{siteConfig.author.name}</span>
       {isHome ? null : null}
     </Link>

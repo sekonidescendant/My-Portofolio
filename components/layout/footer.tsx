@@ -5,9 +5,22 @@ import { ArrowUp } from 'lucide-react';
 import { siteConfig } from '@/lib/site-config';
 import { Container } from '@/components/layout/container';
 import { Logo } from '@/components/layout/logo';
+import type { Settings } from '@/lib/types/database';
 
-export function Footer() {
+export function Footer({ settings }: { settings?: Settings | null }) {
   const year = new Date().getFullYear();
+
+  const role = settings?.role || siteConfig.author.role;
+  const email = settings?.email || siteConfig.author.email;
+  const name = settings?.name || siteConfig.author.name;
+  const logoUrl = settings?.logo_url || undefined;
+
+  const socialLinks = [
+    settings?.linkedin_url ? { title: 'LinkedIn', href: settings.linkedin_url } : null,
+    settings?.github_url ? { title: 'GitHub', href: settings.github_url } : null,
+    settings?.twitter_url ? { title: 'X', href: settings.twitter_url } : null,
+    settings?.portfolio_url ? { title: 'Portfolio', href: settings.portfolio_url } : null,
+  ].filter((item): item is { title: string; href: string } => !!item);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -18,9 +31,9 @@ export function Footer() {
       <Container className="py-12">
         <div className="flex flex-col justify-between gap-8 md:flex-row md:items-start">
           <div className="max-w-xs space-y-3">
-            <Logo />
+            <Logo logoUrl={logoUrl} />
             <p className="text-sm text-muted-foreground">
-              {siteConfig.author.role} · {siteConfig.author.location}
+              {role} · {siteConfig.author.location}
             </p>
           </div>
 
@@ -43,33 +56,37 @@ export function Footer() {
               </ul>
             </div>
 
-            <div className="space-y-3">
-              <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                Social
-              </p>
-              <ul className="space-y-2">
-                {siteConfig.social.map((item) => (
-                  <li key={item.title}>
-                    <a
-                      href={item.href}
-                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                      {item.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {socialLinks.length > 0 && (
+              <div className="space-y-3">
+                <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                  Social
+                </p>
+                <ul className="space-y-2">
+                  {socialLinks.map((item) => (
+                    <li key={item.title}>
+                      <a
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {item.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <div className="space-y-3">
               <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
                 Get in touch
               </p>
               <a
-                href={`mailto:${siteConfig.author.email}`}
+                href={`mailto:${email}`}
                 className="block text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
-                {siteConfig.author.email}
+                {email}
               </a>
             </div>
           </div>
@@ -77,7 +94,7 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border/60 pt-6 sm:flex-row">
           <p className="text-xs text-muted-foreground">
-            © {year} {siteConfig.author.name}. All rights reserved.
+            © {year} {name}. All rights reserved.
           </p>
           <button
             onClick={scrollToTop}

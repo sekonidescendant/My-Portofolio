@@ -133,6 +133,10 @@ export interface Settings {
   name: string;
   email: string;
   phone: string;
+  role: string;
+  description: string;
+  logo_url: string;
+  favicon_url: string;
   linkedin_url: string;
   github_url: string;
   twitter_url: string;

@@ -12,7 +12,7 @@ import { Container } from '@/components/layout/container';
 import { Logo } from '@/components/layout/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
 
-export function Navbar() {
+export function Navbar({ logoUrl }: { logoUrl?: string }) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -45,7 +45,7 @@ export function Navbar() {
       )}
     >
       <Container className="flex h-16 items-center justify-between gap-4">
-        <Logo />
+        <Logo logoUrl={logoUrl} />
 
         <nav className="hidden items-center gap-1 md:flex">
           {siteConfig.nav.map((item) => {
