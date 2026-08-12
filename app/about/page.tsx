@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { Container } from '@/components/layout/container';
 import { PageWrapper } from '@/components/layout/page-wrapper';
 import { PageHeader } from '@/components/ui/page-header';
@@ -74,8 +75,18 @@ export default function AboutPage() {
 
         <section className="grid gap-10 md:grid-cols-3 md:items-start">
           <div className="relative aspect-[4/5] max-w-xs overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-secondary to-secondary/40 shadow-soft">
+            <div className="absolute inset-0">
+              <Image
+                src="/images/profile.jpg"
+                alt="Pelumi Sekoni"
+                fill
+                className="object-cover object-center brightness-75 contrast-90"
+                style={{ transform: 'scale(1.06)' }}
+              />
+            </div>
             <div className="absolute inset-0 surface-gradient" />
             <div className="absolute inset-0 grid-bg bg-grid-pattern bg-grid-32 opacity-30" />
+            <div className="absolute left-6 right-6 bottom-6 h-28 bg-gradient-to-t from-black/60 to-transparent rounded-lg pointer-events-none" />
             <div className="absolute bottom-6 left-6 right-6 space-y-1.5">
               <p className="text-xs font-medium uppercase tracking-widest text-primary">
                 Pelumi Sekoni
