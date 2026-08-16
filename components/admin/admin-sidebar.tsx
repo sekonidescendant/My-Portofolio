@@ -11,6 +11,7 @@ import {
   FileBadge,
   Mail,
   Settings,
+  ListTodo,
   LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -21,6 +22,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/articles', label: 'Articles', icon: FileText },
+  { href: '/admin/topics', label: 'Draft Topics', icon: ListTodo },
   { href: '/admin/case-studies', label: 'Case Studies', icon: Briefcase },
   { href: '/admin/media', label: 'Media', icon: ImageIcon },
   { href: '/admin/resume', label: 'Resume', icon: FileBadge },
