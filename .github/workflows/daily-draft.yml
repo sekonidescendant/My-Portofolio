@@ -1,0 +1,29 @@
+name: Daily Draft Article
+
+on:
+  schedule:
+    # 6:00 UTC = 7:00am Lagos (WAT, UTC+1). GitHub may delay scheduled runs
+    # by a few minutes during high load — not time-critical for this job.
+    - cron: '0 6 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  generate-draft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate draft article
+        run: node scripts/generate-daily-draft.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
+          SITE_URL: ${{ secrets.SITE_URL }}
