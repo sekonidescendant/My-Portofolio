@@ -1,4 +1,4 @@
-export type ContentStatus = 'draft' | 'published' | 'archived';
+export type ContentStatus = 'draft' | 'scheduled' | 'published' | 'archived';
 
 export interface Profile {
   id: string;
@@ -54,6 +54,7 @@ export interface Article {
   status: ContentStatus;
   reading_time: string;
   published_at: string | null;
+  scheduled_for: string | null;
   created_at: string;
   updated_at: string;
   category?: Category | null;
@@ -88,6 +89,7 @@ export interface CaseStudy {
   gallery: string[];
   status: ContentStatus;
   published_at: string | null;
+  scheduled_for: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -152,4 +154,13 @@ export interface Settings {
 export interface ArticleWithTag extends Article {
   category?: Category | null;
   tags?: Tag[];
+}
+
+export interface ContentTopic {
+  id: string;
+  topic: string;
+  used: boolean;
+  used_at: string | null;
+  created_article_id: string | null;
+  created_at: string;
 }
