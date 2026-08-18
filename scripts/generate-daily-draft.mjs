@@ -11,7 +11,7 @@ const GEMINI_API_KEY = requireEnv('GEMINI_API_KEY');
 // starts returning errors, check https://ai.google.dev/gemini-api/docs/models
 // for the current free model and override via the GEMINI_MODEL secret —
 // no code change needed.
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
 const RESEND_API_KEY = requireEnv('RESEND_API_KEY');
 const NOTIFY_EMAIL = requireEnv('NOTIFY_EMAIL');
 const SITE_URL = process.env.SITE_URL || 'https://my-portofolio-xi-six.vercel.app';
