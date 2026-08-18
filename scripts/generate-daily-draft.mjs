@@ -101,9 +101,9 @@ async function sendEmail(subject, html) {
   }
 }
 
-const SYSTEM_PROMPT = `You are ghostwriting a blog article for Pelumi Sekoni, a Digital Operations & Project Coordinator with real experience in startup operations, documentation, project execution, community growth, and content strategy — including leading Blockchain FUOYE (a student blockchain community) and working as COO at Verrsa Social Media.
+const SYSTEM_PROMPT = `You are ghostwriting a blog article for Pelumi Sekoni, a Digital Operations & Project Coordinator with real experience in startup operations, documentation, project executi[...]
 
-Write in first person, as Pelumi. Voice: direct, practical, grounded in specifics rather than generic advice — the kind of writing that reads like it came from someone who actually did the work, not a generic AI listicle. Avoid clichés like "In today's fast-paced world" or "Let's dive in." No emoji. No hashtags.
+Write in first person, as Pelumi. Voice: direct, practical, grounded in specifics rather than generic advice — the kind of writing that reads like it came from someone who actually did the work[...]
 
 Respond in EXACTLY this format, nothing before or after:
 
@@ -112,44 +112,67 @@ Respond in EXACTLY this format, nothing before or after:
 <excerpt>One or two sentence summary, 25 words max</excerpt>
 <category>One of: Operations, AI, Startups, Community, Blockchain, Productivity, WordPress</category>
 <content>
-Full article in Markdown. 1000-1400 words. Use ## for section headings, occasional **bold** for emphasis, and real paragraphs — not bullet-point-only content. Ground it in specific, plausible detail rather than vague generalities.
+Full article in Markdown. 1000-1400 words. Use ## for section headings, occasional **bold** for emphasis, and real paragraphs — not bullet-point-only content. Ground it in specific, plausible d[...]
 </content>`;
 
 async function generateDraft(topic) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'x-goog-api-key': GEMINI_API_KEY,
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-      contents: [{ parts: [{ text: `Write the article. Topic: ${topic}` }] }],
-      generationConfig: { maxOutputTokens: 4000, temperature: 0.9 },
-    }),
-  });
-  if (!res.ok) throw new Error(`Gemini call failed: ${res.status} ${await res.text()}`);
-  const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '';
+  const MAX_RETRIES = 3;
+  const INITIAL_DELAY = 2000; // 2 seconds
 
-  const extract = (tag) => {
-    const match = text.match(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`));
-    return match ? match[1].trim() : '';
-  };
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'x-goog-api-key': GEMINI_API_KEY,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents: [{ parts: [{ text: `Write the article. Topic: ${topic}` }] }],
+          generationConfig: { maxOutputTokens: 4000, temperature: 0.9 },
+        }),
+      });
 
-  const title = extract('title');
-  const excerpt = extract('excerpt');
-  const category = extract('category');
-  const content = extract('content');
-  let slug = extract('slug') || slugify(title);
-  slug = slugify(slug);
+      if (!res.ok) {
+        // Retry on 503 (Service Unavailable), fail immediately on other errors
+        if (res.status === 503 && attempt < MAX_RETRIES - 1) {
+          const delay = INITIAL_DELAY * Math.pow(2, attempt);
+          console.warn(
+            `Gemini 503 error (attempt ${attempt + 1}/${MAX_RETRIES}). Retrying in ${delay}ms...`
+          );
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          continue;
+        }
+        throw new Error(`Gemini call failed: ${res.status} ${await res.text()}`);
+      }
 
-  if (!title || !content) {
-    throw new Error(`Could not parse model output. Raw response:\n${text.slice(0, 2000)}`);
+      const data = await res.json();
+      const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '';
+
+      const extract = (tag) => {
+        const match = text.match(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`));
+        return match ? match[1].trim() : '';
+      };
+
+      const title = extract('title');
+      const excerpt = extract('excerpt');
+      const category = extract('category');
+      const content = extract('content');
+      let slug = extract('slug') || slugify(title);
+      slug = slugify(slug);
+
+      if (!title || !content) {
+        throw new Error(`Could not parse model output. Raw response:\n${text.slice(0, 2000)}`);
+      }
+
+      return { title, slug, excerpt, category, content };
+    } catch (err) {
+      // If this is the last attempt, rethrow the error
+      if (attempt === MAX_RETRIES - 1) throw err;
+    }
   }
-
-  return { title, slug, excerpt, category, content };
 }
 
 async function main() {
